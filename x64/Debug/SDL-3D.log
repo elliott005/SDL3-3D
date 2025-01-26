@@ -1,0 +1,7 @@
+﻿  main.cpp
+C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\main.cpp(111,50): warning C4244: 'argument': conversion from '_Ty' to 'Uint32', possible loss of data
+C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\main.cpp(111,50): warning C4244:         with
+C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\main.cpp(111,50): warning C4244:         [
+C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\main.cpp(111,50): warning C4244:             _Ty=double
+C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\main.cpp(111,50): warning C4244:         ]
+  SDL-3D.vcxproj -> C:\Users\ellio\Documents\coding\C++\SDL-3D\x64\Debug\SDL-3D.exe
