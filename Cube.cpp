@@ -1,23 +1,19 @@
 #include "Cube.hpp"
 
-Cube::Cube(double x, double y, double z, double p_scale, int p_r, int p_g, int p_b) {
+Cube::Cube(double x, double y, double z, double p_width, double p_height, double p_depth, double p_scale, int p_r, int p_g, int p_b) {
 	pos.x = x;
 	pos.y = y;
 	pos.z = z;
 	scale = p_scale;
-	for (Point& p : points) {
-		p.x = (scale * p.x + pos.x);
-		p.y = (scale * p.y + pos.y);
-		p.z = (scale * p.z + pos.z);
-	}
 
+	width = p_width; height = p_height; depth = p_depth;
 	r = p_r; g = p_g; b = p_b;
 }
 
 void Cube::draw(SDL_Renderer* renderer, int screenWidth, int screenHeight, Point playerPos, Point playerRot) {
 	resetPoints();
 	for (Point& p : points) {
-		p = transform(getRotationMatrix(playerRot * -1), p);
+		//p = transform(getRotationMatrix(playerRot * -1), p);
 		p.x = (scale * p.x + pos.x);
 		p.y = (scale * p.y + pos.y);
 		p.z = (scale * p.z + pos.z);
@@ -35,7 +31,7 @@ void Cube::draw(SDL_Renderer* renderer, int screenWidth, int screenHeight, Point
 	for (int i = 0; i < 6; i++) {
 		if (isVisible(faces[i], points, playerPos, playerRot)) {
 			for (int j = 0; j < 4; j++) {
-				connect(renderer, points, faces[i][j], faces[i][(j + 1) % 4], playerPos, playerRot, screenOffsetX, screenOffsetY);
+				connect(renderer, points, faces[i][j], faces[i][(j + 1) % 4], playerPos, playerRot, scale, screenOffsetX, screenOffsetY);
 			}
 		}
 	}
@@ -43,14 +39,14 @@ void Cube::draw(SDL_Renderer* renderer, int screenWidth, int screenHeight, Point
 
 void Cube::resetPoints() {
 	points = {
-		Point(0, 0, 0),
-		Point(1, 0, 0),
-		Point(1, 1, 0),
-		Point(0, 1, 0),
-		Point(0, 0, 1),
-		Point(1, 0, 1),
-		Point(1, 1, 1),
-		Point(0, 1, 1)
+		Point(-width / 2, -height / 2, -depth / 2),
+		Point(width / 2, -height / 2, -depth / 2),
+		Point(width / 2, height / 2, -depth / 2),
+		Point(-width / 2, height / 2, -depth / 2),
+		Point(-width / 2, -height / 2, depth / 2),
+		Point(width / 2, -height / 2, depth / 2),
+		Point(width / 2, height / 2, depth / 2),
+		Point(-width / 2, height / 2, depth / 2)
 	};
 }
 
@@ -115,7 +111,8 @@ bool isVisible(int face[4], std::vector<Point> points, Point playerPos, Point Pl
 Point screenProj(Point coords, double screenOffsetX, double screenOffsetY) {
 	return Point(
 		(coords.x / coords.z * screenOffsetX) + screenOffsetX,
-		(coords.y / coords.z * screenOffsetY) + screenOffsetY
+		(coords.y / coords.z * screenOffsetY) + screenOffsetY,
+		coords.z
 	);
 }
 
@@ -123,22 +120,27 @@ double vecDistance(Point v1, Point v2) {
 	return sqrt(pow(v1.x - v2.x, 2) + pow(v1.y - v2.y, 2) + pow(v1.z - v2.z, 2));
 }
 
-void connect(SDL_Renderer* const renderer, const std::vector<Point>& points, int i, int j, Point playerPos, Point playerRot, double screenOffsetX, double screenOffsetY) {
+void connect(SDL_Renderer* const renderer, const std::vector<Point>& points, int i, int j, Point playerPos, Point playerRot, double scale, double screenOffsetX, double screenOffsetY) {
+	Point playerVerticalRot = transform(getRotationMatrix(Point(0, playerRot.y, 0)), Point(playerRot.x, 0, 0));
+	//printf("%f, %f\n", playerVerticalRot.x, playerVerticalRot.z);
+	Matrix playerRotMatrix = getRotationMatrix(Point(-playerVerticalRot.x, -playerRot.y, -playerVerticalRot.z));
 	Point pos = translate(playerPos, points[i]);
-	pos = transform(getRotationMatrix(playerRot * -1), pos);
+	pos = transform(playerRotMatrix, pos);
 	int outside = 0;
-	if (pos.z > -5.0) {
+	if (not isOnScreen(pos, screenOffsetX * 2, screenOffsetY * 2)) {
 		outside++;
 	}
 	//printf("dist: %f\n", vecDistance(playerPos, pos));
 	Point iScreenCoords = screenProj(pos, screenOffsetX, screenOffsetY);
 	pos = translate(playerPos, points[j]);
-	pos = transform(getRotationMatrix(playerRot * -1), pos);
-	if (pos.z > -5.0) {
+	pos = transform(playerRotMatrix, pos);
+	if (not isOnScreen(pos, screenOffsetX * 2, screenOffsetY * 2)) {
 		outside++;
 	}
 	Point jScreenCoords = screenProj(pos, screenOffsetX, screenOffsetY);
 	//printf("x: %f, y: %f, z: %f\n", iScreenCoords.x, iScreenCoords.y, iScreenCoords.z);
+	//printf("(jScreenCoords - iScreenCoords).length(): %f\n", (jScreenCoords - iScreenCoords).length());
+	
 	if (outside < 1) {
 		SDL_RenderLine(
 			renderer,
@@ -148,6 +150,40 @@ void connect(SDL_Renderer* const renderer, const std::vector<Point>& points, int
 			jScreenCoords.y
 		);
 	}
+	//else {
+	//	double len = (jScreenCoords - iScreenCoords).length();
+	//	//printf("%f, %f\n", len, scale);
+	//	for (int i = 0; i < len; i += scale) {
+	//		Point vec1;
+	//		if (i == 0) {
+	//			vec1 = iScreenCoords;
+	//		}
+	//		else {
+	//			vec1 = iScreenCoords + (jScreenCoords - iScreenCoords) * i / len;
+	//		}
+	//		Point vec2;
+	//		if (i + scale >= len) {
+	//			vec2 = jScreenCoords;
+	//		}
+	//		else {
+	//			vec2 = jScreenCoords + (iScreenCoords - jScreenCoords) * (i + scale) / len;
+	//		}
+	//		//printf("vec1: %f, %f, %f, vec2: %f, %f, %f\n", vec1.x, vec1.y, vec1.z, vec2.x, vec2.y, vec2.z);
+	//		if (isOnScreen(vec1, screenOffsetX * 2, screenOffsetY * 2) and isOnScreen(vec2, screenOffsetX * 2, screenOffsetY * 2)) {
+	//			SDL_RenderLine(
+	//				renderer,
+	//				vec1.x,
+	//				vec1.y,
+	//				vec2.x,
+	//				vec2.y
+	//			);
+	//		}
+	//	}
+	//}
+}
+
+bool isOnScreen(Point v, double screenSizeX, double screenSizeY) {
+	return (v.z < -5.0) or ((v.x < -screenSizeX) or (v.y < -screenSizeY) or (v.x > 2 * screenSizeX) or (v.y > 2 * screenSizeY));
 }
 
 Matrix getRotationMatrix(Point rot) {
@@ -172,5 +208,6 @@ Matrix getRotationMatrix(Point rot) {
 		{0, 0, 1}
 	};
 
-	return dot(rotationZ, dot(rotationY, rotationX));
+	return dot(rotationY, dot(rotationX, rotationZ));
+	//return dot(rotationZ, dot(rotationY, rotationX));
 }

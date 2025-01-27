@@ -24,12 +24,15 @@ int main(int argc, char* args[]) {
 	double playerSpeed = 30.0;
 	double playerRotSpeed = 1.0;
 	Point playerRot(0, 0, 0);
+	double playerRotLimitX = 0.5;
 
 	int scale = 20;
 
 	std::vector<Cube> cubes = {
-		Cube(0, 0, -100, scale, 100, 200, 0),
-		Cube(0, 0, 100, scale, 10, 100, 200)
+		Cube(0, 0, -100, 1, 1, 1, scale, 100, 200, 0),
+		Cube(0, 0, 200, 1, 1, 1, scale, 10, 100, 200),
+		Cube(100, 0, 0, 1, 1, 1, scale, 10, 200, 0),
+		Cube(-150, 0, 0, 1, 1, 1, scale, 0, 0, 0)
 	};
 
 	std::vector<int> keysPressed;
@@ -85,6 +88,19 @@ int main(int argc, char* args[]) {
 			case SDLK_DOWN:
 				playerPos += transform(getRotationMatrix(Point(0, playerRot.y, 0)), Point(0, 0, -1)) * playerSpeed * deltaTime;
 				break;
+
+			case SDLK_X:
+				playerPos.y -= playerSpeed * deltaTime;
+				break;
+			case SDLK_C:
+				playerPos.y += playerSpeed * deltaTime;
+				break;
+
+			case SDLK_SPACE:
+				playerPos = Point();
+				playerRot = Point();
+				break;
+
 			case SDLK_A:
 				playerRot.y -= playerRotSpeed * deltaTime;
 				break;
@@ -92,6 +108,8 @@ int main(int argc, char* args[]) {
 				playerRot.y += playerRotSpeed * deltaTime;
 				break;
 			case SDLK_W:
+				//playerRot += transform(getRotationMatrix(Point(0, -playerRot.y, 0)), Point(1, 0, 0)) * playerRotSpeed * deltaTime;
+				//printf("%f, %f, %f\n", playerRot.x, playerRot.y, playerRot.z);
 				playerRot.x += playerRotSpeed * deltaTime;
 				break;
 			case SDLK_S:
@@ -101,7 +119,10 @@ int main(int argc, char* args[]) {
 				break;
 			}
 		}
-
+		if (playerRot.x) {
+			playerRot.x = std::min(playerRotLimitX, std::max(-playerRotLimitX, playerRot.x));
+		}
+		
 		for (Cube cube : cubes) {
 			cube.draw(game.m_renderer, game.SCREEN_WIDTH, game.SCREEN_HEIGHT, playerPos, playerRot);
 		}

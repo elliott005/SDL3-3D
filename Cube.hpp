@@ -46,6 +46,10 @@ public:
         return Point(this->x * other, this->y * other, this->z * other);
     }
 
+    Point operator/(double other) {
+        return Point(this->x / other, this->y / other, this->z / other);
+    }
+
     Point operator-(Point other) {
         return Point(this->x - other.x, this->y - other.y, this->z - other.z);
     }
@@ -77,7 +81,7 @@ Point translate(const Point& shift, const Point& point);
 
 double vecDistance(Point v1, Point v2);
 
-void connect(SDL_Renderer* const renderer, const std::vector<Point>& points, int i, int j, Point playerPos, Point playerRot, double screenOffsetX, double screenOffsetY);
+void connect(SDL_Renderer* const renderer, const std::vector<Point>& points, int i, int j, Point playerPos, Point playerRot, double scale, double screenOffsetX, double screenOffsetY);
 
 Matrix getRotationMatrix(Point rot);
 
@@ -91,11 +95,13 @@ Point faceNormal(int face[4], std::vector<Point> points);
 
 bool isVisible(int face[4], std::vector<Point> points, Point playerPos, Point playerRot);
 
+bool isOnScreen(Point v, double screenSizeX, double screenSizeY);
+
 Point screenProj(Point coords, double screenOffsetX, double screenOffsetY);
 
 class Cube {
 public:
-    Cube(double x, double y, double z, double scale, int p_r, int p_g, int p_b);
+    Cube(double x, double y, double z, double p_width, double p_height, double p_depth, double scale, int p_r, int p_g, int p_b);
 
     void draw(SDL_Renderer* renderer, int screenWidth, int screenHeight, Point playerPos, Point playerRot);
 
@@ -121,19 +127,10 @@ private:
         {7, 3, 2, 6},
         {5, 4, 7, 6}
     };
-    std::vector<Point> points = {
-        Point(0, 0, 0),
-        Point(1, 0, 0),
-        Point(1, 1, 0),
-        Point(0, 1, 0),
-        Point(0, 0, 1),
-        Point(1, 0, 1),
-        Point(1, 1, 1),
-        Point(0, 1, 1)
-    };
+    std::vector<Point> points;
     Point pos;
 
     double scale;
-
+    double width; double height; double depth;
     int r; int g; int b;
 };
