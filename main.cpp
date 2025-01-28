@@ -24,13 +24,13 @@ int main(int argc, char* args[]) {
 	double playerSpeed = 30.0;
 	double playerRotSpeed = 1.0;
 	Point playerRot(0, 0, 0);
-	double playerRotLimitX = 0.5;
+	double playerRotLimitX = 0.8;
 
 	int scale = 20;
 
 	std::vector<Cube> cubes = {
-		Cube(0, 0, -100, 1, 1, 1, scale, 100, 200, 0),
-		Cube(0, 0, 200, 1, 1, 1, scale, 10, 100, 200),
+		Cube(0, 0, -250, 10, 1, 10, scale, 100, 200, 0),
+		Cube(0, 0, 300, 1, 1, 10, scale, 10, 100, 200),
 		Cube(100, 0, 0, 1, 1, 1, scale, 10, 200, 0),
 		Cube(-150, 0, 0, 1, 1, 1, scale, 0, 0, 0)
 	};

@@ -8,6 +8,10 @@ Cube::Cube(double x, double y, double z, double p_width, double p_height, double
 
 	width = p_width; height = p_height; depth = p_depth;
 	r = p_r; g = p_g; b = p_b;
+
+	/*std::tuple<Point, bool> ipTuple = rayPlaneIntersection(Point(0, 0, -1), Point(0, 0, -5), Point(1, 0, 1), Point(1, 0, -10));
+	Point ip = std::get<0>(ipTuple);
+	printf("%i, %f, %f, %f\n", std::get<1>(ipTuple), ip.x, ip.y, ip.z);*/
 }
 
 void Cube::draw(SDL_Renderer* renderer, int screenWidth, int screenHeight, Point playerPos, Point playerRot) {
@@ -102,7 +106,8 @@ Point faceNormal(int face[4], std::vector<Point> points) {
 	return vecCrossProduct(vs1, vs2);
 }
 
-bool isVisible(int face[4], std::vector<Point> points, Point playerPos, Point PlayerRot) {
+bool isVisible(int face[4], std::vector<Point> points, Point playerPos, Point playerRot) {
+	//playerPos.z += 5.0;
 	Point viewVec = vecSubstraction(playerPos * -1, points[face[0]]);
 	//Point viewVec = transform(getRotationMatrix(PlayerRot), Point(0, 0, -1));
 	return vecDotProduct(faceNormal(face, points), viewVec) < 0;
@@ -121,27 +126,31 @@ double vecDistance(Point v1, Point v2) {
 }
 
 void connect(SDL_Renderer* const renderer, const std::vector<Point>& points, int i, int j, Point playerPos, Point playerRot, double scale, double screenOffsetX, double screenOffsetY) {
+	double screenSizeX = screenOffsetX * 2;
+	double screenSizeY = screenOffsetY * 2;
+	
 	Point playerVerticalRot = transform(getRotationMatrix(Point(0, playerRot.y, 0)), Point(playerRot.x, 0, 0));
 	//printf("%f, %f\n", playerVerticalRot.x, playerVerticalRot.z);
 	Matrix playerRotMatrix = getRotationMatrix(Point(-playerVerticalRot.x, -playerRot.y, -playerVerticalRot.z));
 	Point pos = translate(playerPos, points[i]);
 	pos = transform(playerRotMatrix, pos);
-	int outside = 0;
-	if (not isOnScreen(pos, screenOffsetX * 2, screenOffsetY * 2)) {
-		outside++;
-	}
 	//printf("dist: %f\n", vecDistance(playerPos, pos));
 	Point iScreenCoords = screenProj(pos, screenOffsetX, screenOffsetY);
+	bool iInside = true;
+	if (not isOnScreen(iScreenCoords, screenSizeX, screenSizeY)) {
+		iInside = false;
+	}
 	pos = translate(playerPos, points[j]);
 	pos = transform(playerRotMatrix, pos);
-	if (not isOnScreen(pos, screenOffsetX * 2, screenOffsetY * 2)) {
-		outside++;
-	}
 	Point jScreenCoords = screenProj(pos, screenOffsetX, screenOffsetY);
+	bool jInside = true;
+	if (not isOnScreen(jScreenCoords, screenSizeX, screenSizeY)) {
+		jInside = false;
+	}
 	//printf("x: %f, y: %f, z: %f\n", iScreenCoords.x, iScreenCoords.y, iScreenCoords.z);
 	//printf("(jScreenCoords - iScreenCoords).length(): %f\n", (jScreenCoords - iScreenCoords).length());
 	
-	if (outside < 1) {
+	if (iInside and jInside) {
 		SDL_RenderLine(
 			renderer,
 			iScreenCoords.x,
@@ -149,41 +158,135 @@ void connect(SDL_Renderer* const renderer, const std::vector<Point>& points, int
 			jScreenCoords.x,
 			jScreenCoords.y
 		);
+	} else if (iInside or jInside) {
+		Point vec1 = iScreenCoords;
+		Point vec2 = jScreenCoords;
+		if (jInside) {
+			vec1 = jScreenCoords;
+			vec2 = iScreenCoords;
+		}
+
+		// line ray
+		Point rayOrigin = vec1;
+		double t = (vec2 - rayOrigin).length();
+		Point rayDirection = (vec2 - rayOrigin) / t;
+		// viewport plane
+		Point planeCenter(0, 0, -5);
+		Point planeNormal(0, 0, -1);
+
+		Point intersectionPoint;
+		bool intersects = true;
+
+		std::tuple<Point, bool> ipTuple = rayPlaneIntersection(planeNormal, planeCenter, rayDirection, rayOrigin);
+		if (std::get<1>(ipTuple)) {
+			intersectionPoint = std::get<0>(ipTuple);
+		}
+		else {
+			double frustumDistance = -5.0;
+			Point planeCenter(frustumDistance, 0, -5);
+			Point planeNormal(1, 0, 0);
+			std::tuple<Point, bool> ipTuple = rayPlaneIntersection(planeNormal, planeCenter, rayDirection, rayOrigin);
+			if (std::get<1>(ipTuple)) {
+				intersectionPoint = std::get<0>(ipTuple);
+			}
+			else {
+				Point planeCenter(-frustumDistance, 0, -5);
+				Point planeNormal(-1, 0, 0);
+				std::tuple<Point, bool> ipTuple = rayPlaneIntersection(planeNormal, planeCenter, rayDirection, rayOrigin);
+				if (std::get<1>(ipTuple)) {
+					intersectionPoint = std::get<0>(ipTuple);
+				}
+				else {
+					Point planeCenter(0, frustumDistance, -5);
+					Point planeNormal(0, 1, 0);
+					std::tuple<Point, bool> ipTuple = rayPlaneIntersection(planeNormal, planeCenter, rayDirection, rayOrigin);
+					if (std::get<1>(ipTuple)) {
+						intersectionPoint = std::get<0>(ipTuple);
+					}
+					else {
+						Point planeCenter(0, -frustumDistance, -5);
+						Point planeNormal(0, -1, 0);
+						std::tuple<Point, bool> ipTuple = rayPlaneIntersection(planeNormal, planeCenter, rayDirection, rayOrigin);
+						if (std::get<1>(ipTuple)) {
+							intersectionPoint = std::get<0>(ipTuple);
+						}
+						else {
+							intersects = false;
+						}
+					}
+				}
+			}
+		}
+
+		if (intersects) {
+			if (vec2.z >= 0.0) {
+				intersectionPoint -= Point(vec1.x, vec1.y, vec1.z);
+				intersectionPoint *= -1.0;
+				intersectionPoint *= std::abs(intersectionPoint.z);
+				intersectionPoint += vec1;
+			}
+			else if (vec2.z >= -5.0) {
+				intersectionPoint -= Point(vec1.x, vec1.y, vec1.z);
+				intersectionPoint *= std::abs(intersectionPoint.z);
+				intersectionPoint += vec1;
+			}
+			vec1 = iScreenCoords;
+			if (jInside) {
+				vec1 = jScreenCoords;
+			}
+			SDL_RenderLine(
+				renderer,
+				vec1.x,
+				vec1.y,
+				intersectionPoint.x,
+				intersectionPoint.y
+			);
+		}
 	}
-	//else {
-	//	double len = (jScreenCoords - iScreenCoords).length();
-	//	//printf("%f, %f\n", len, scale);
-	//	for (int i = 0; i < len; i += scale) {
-	//		Point vec1;
-	//		if (i == 0) {
-	//			vec1 = iScreenCoords;
-	//		}
-	//		else {
-	//			vec1 = iScreenCoords + (jScreenCoords - iScreenCoords) * i / len;
-	//		}
-	//		Point vec2;
-	//		if (i + scale >= len) {
-	//			vec2 = jScreenCoords;
-	//		}
-	//		else {
-	//			vec2 = jScreenCoords + (iScreenCoords - jScreenCoords) * (i + scale) / len;
-	//		}
-	//		//printf("vec1: %f, %f, %f, vec2: %f, %f, %f\n", vec1.x, vec1.y, vec1.z, vec2.x, vec2.y, vec2.z);
-	//		if (isOnScreen(vec1, screenOffsetX * 2, screenOffsetY * 2) and isOnScreen(vec2, screenOffsetX * 2, screenOffsetY * 2)) {
-	//			SDL_RenderLine(
-	//				renderer,
-	//				vec1.x,
-	//				vec1.y,
-	//				vec2.x,
-	//				vec2.y
-	//			);
-	//		}
-	//	}
-	//}
 }
 
 bool isOnScreen(Point v, double screenSizeX, double screenSizeY) {
-	return (v.z < -5.0) or ((v.x < -screenSizeX) or (v.y < -screenSizeY) or (v.x > 2 * screenSizeX) or (v.y > 2 * screenSizeY));
+	return (v.z < -5.0);// and (v.x > 0.0) and (v.y > 0.0) and (v.x < screenSizeX) and (v.y < screenSizeY);
+}
+
+std::tuple<Point, bool> rayPlaneIntersection(Point planeNormal, Point planeCenter, Point rayDirection, Point rayOrigin) {
+	//float denom = normal.dot(ray.direction);
+	//if (abs(denom) > 0.0001f) // your favorite epsilon
+	//{
+	//	float t = (center - ray.origin).dot(normal) / denom;
+	//	if (t >= 0) return true; // you might want to allow an epsilon here too
+	//}
+	//return false;
+	Point diff = rayOrigin - planeCenter;
+	double prod1 = vecDotProduct(diff, planeNormal);
+	double prod2 = vecDotProduct(rayDirection, planeNormal);
+	if (std::abs(prod2) > 0.0001f) {
+		double prod3 = -prod1 / prod2;
+		if (prod3 >= 0.0) {
+			Point intersectionPoint = rayOrigin + rayDirection * prod3;
+			return std::make_tuple(intersectionPoint, true);
+		}
+	}
+	/*else {
+		return std::make_tuple(Point(-1, 0), false);
+	}*/
+	return std::make_tuple(Point(), false);
+
+	/*Vector3D diff = rayPoint - planePoint;
+	double prod1 = diff.dot(planeNormal);
+	double prod2 = rayVector.dot(planeNormal);
+	double prod3 = prod1 / prod2;
+	return rayPoint - rayVector * prod3;*/
+}
+
+int sign(double n) {
+	if (n < 0.0) {
+		return -1;
+	}
+	else if (n > 0.0) {
+		return 1;
+	}
+	return 0;
 }
 
 Matrix getRotationMatrix(Point rot) {

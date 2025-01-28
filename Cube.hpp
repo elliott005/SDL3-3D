@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 #include <algorithm>
+#include <tuple>
 
 #include "helpers.hpp"
 
@@ -45,9 +46,19 @@ public:
     Point operator*(double other) {
         return Point(this->x * other, this->y * other, this->z * other);
     }
+    void operator*=(double other) {
+        this->x *= other;
+        this->y *= other;
+        this->z *= other;
+    }
 
     Point operator/(double other) {
         return Point(this->x / other, this->y / other, this->z / other);
+    }
+    void operator/=(double other) {
+        this->x /= other;
+        this->y /= other;
+        this->z /= other;
     }
 
     Point operator-(Point other) {
@@ -98,6 +109,10 @@ bool isVisible(int face[4], std::vector<Point> points, Point playerPos, Point pl
 bool isOnScreen(Point v, double screenSizeX, double screenSizeY);
 
 Point screenProj(Point coords, double screenOffsetX, double screenOffsetY);
+
+int sign(double n);
+
+std::tuple<Point, bool> rayPlaneIntersection(Point planeNormal, Point planeCenter, Point rayDirection, Point rayOrigin);
 
 class Cube {
 public:
