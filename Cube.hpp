@@ -3,6 +3,7 @@
 #include <SDL3/SDL.h>
 #include <algorithm>
 #include <tuple>
+#include <set>
 
 #include "helpers.hpp"
 
@@ -79,6 +80,10 @@ public:
         this->z += other.z;
     }
 
+    bool operator==(Point other) {
+        return this->x == other.x and this->y == other.y;
+    }
+
     double length() {
         return sqrt(pow(this->x, 2) + pow(this->y, 2) + pow(this->z, 2));
     }
@@ -92,7 +97,7 @@ Point translate(const Point& shift, const Point& point);
 
 double vecDistance(Point v1, Point v2);
 
-void connect(SDL_Renderer* const renderer, const std::vector<Point>& points, int i, int j, Point playerPos, Point playerRot, double scale, double screenOffsetX, double screenOffsetY);
+std::vector<Point> connect(SDL_Renderer* const renderer, const std::vector<Point>& points, int i, int j, Point playerPos, Point playerRot, double scale, double screenOffsetX, double screenOffsetY);
 
 Matrix getRotationMatrix(Point rot);
 
@@ -110,9 +115,21 @@ bool isOnScreen(Point v, double screenSizeX, double screenSizeY);
 
 Point screenProj(Point coords, double screenOffsetX, double screenOffsetY);
 
+bool isVertexEqual(SDL_Vertex v1, SDL_Vertex v2);
+
 int sign(double n);
 
+double vecAngle(Point v1, Point v2);
+
+bool doIntersect(Point& p1, Point& q1, Point& p2, Point& q2);
+
+int orientation(Point& p, Point& q, Point& r);
+
+std::pair<std::pair<Point, Point>, std::pair<Point, Point>> findDiagonals(std::vector<Point>& vertices);
+
 std::tuple<Point, bool> rayPlaneIntersection(Point planeNormal, Point planeCenter, Point rayDirection, Point rayOrigin);
+
+SDL_Vertex pointToVertex(Point point, double r, double g, double b);
 
 class Cube {
 public:

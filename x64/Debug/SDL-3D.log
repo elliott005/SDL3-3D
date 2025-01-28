@@ -1,10 +1,7 @@
-﻿  Cube.cpp
-C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\Cube.cpp(159,17): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\Cube.cpp(158,17): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\Cube.cpp(157,17): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\Cube.cpp(156,17): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\Cube.cpp(242,22): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\Cube.cpp(241,22): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\Cube.cpp(240,9): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\Cube.cpp(239,9): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+﻿  main.cpp
+C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\main.cpp(132,50): warning C4244: 'argument': conversion from '_Ty' to 'Uint32', possible loss of data
+C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\main.cpp(132,50): warning C4244:         with
+C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\main.cpp(132,50): warning C4244:         [
+C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\main.cpp(132,50): warning C4244:             _Ty=double
+C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\main.cpp(132,50): warning C4244:         ]
   SDL-3D.vcxproj -> C:\Users\ellio\Documents\coding\C++\SDL-3D\x64\Debug\SDL-3D.exe

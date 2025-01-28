@@ -34,8 +34,83 @@ void Cube::draw(SDL_Renderer* renderer, int screenWidth, int screenHeight, Point
 	}*/
 	for (int i = 0; i < 6; i++) {
 		if (isVisible(faces[i], points, playerPos, playerRot)) {
+			std::vector<Point> facePoints;
 			for (int j = 0; j < 4; j++) {
-				connect(renderer, points, faces[i][j], faces[i][(j + 1) % 4], playerPos, playerRot, scale, screenOffsetX, screenOffsetY);
+				std::vector<Point> pointsVector = connect(renderer, points, faces[i][j], faces[i][(j + 1) % 4], playerPos, playerRot, scale, screenOffsetX, screenOffsetY);
+				if (pointsVector.size()) {
+					for (int idx = 0; idx < pointsVector.size(); idx++) {
+						Point point = pointsVector[idx];
+						facePoints.push_back(point);
+					}
+				}
+				
+			}
+			std::vector<Point> facePointsUnique;
+			for (const Point& point1 : facePoints) {
+				bool exists = false;
+				for (const Point& point2 : facePointsUnique) {
+					if (point1.x == point2.x and point1.y == point2.y) {
+						exists = true;
+						break;
+					}
+				}
+				if (not exists) {
+					facePointsUnique.push_back(point1);
+				}
+			}
+			if (facePointsUnique.size() >= 3) {
+				std::vector<SDL_Vertex> trig1Array;
+				if (facePointsUnique.size() == 4) {
+					std::pair<std::pair<Point, Point>, std::pair<Point, Point>> diags = findDiagonals(facePointsUnique);
+					/*printf("first.first: %f, %f\n", diags.first.first.x, diags.first.first.y);
+					printf("first.second: %f, %f\n", diags.first.second.x, diags.first.second.y);
+					printf("second.first: %f, %f\n", diags.second.first.x, diags.second.first.y);
+					printf("second.second: %f, %f\n", diags.second.second.x, diags.second.second.y);*/
+					Point second;
+					for (const Point& point : facePoints) {
+						if (not (diags.first.first == point) and not (diags.first.second == point) and not (diags.second.first == point)) {
+							second = point;
+							break;
+						}
+					}
+					//printf("second: %f, %f\n", second.x, second.y);
+					trig1Array = {
+						pointToVertex(diags.second.second, r, g, b),
+						pointToVertex(second, r, g, b),
+						pointToVertex(diags.first.second, r, g, b),
+						pointToVertex(second, r, g, b),
+						pointToVertex(diags.second.second, r, g, b),
+						pointToVertex(diags.second.first, r, g, b),
+					};
+				}
+				else if (facePointsUnique.size() == 3) {
+					trig1Array = {
+						pointToVertex(facePointsUnique[0], r, g, b),
+						pointToVertex(facePointsUnique[1], r, g, b),
+						pointToVertex(facePointsUnique[2], r, g, b),
+					};
+				}
+				else if (facePointsUnique.size() == 5) {
+					trig1Array = {
+						pointToVertex(facePointsUnique[0], r, g, b),
+						pointToVertex(facePointsUnique[1], r, g, b),
+						pointToVertex(facePointsUnique[2], r, g, b),
+
+						pointToVertex(facePointsUnique[2], r, g, b),
+						pointToVertex(facePointsUnique[0], r, g, b),
+						pointToVertex(facePointsUnique[3], r, g, b),
+
+						pointToVertex(facePointsUnique[0], r, g, b),
+						pointToVertex(facePointsUnique[3], r, g, b),
+						pointToVertex(facePointsUnique[4], r, g, b),
+					};
+				}
+				if (trig1Array.size()) {
+					bool success = SDL_RenderGeometry(renderer, NULL, trig1Array.data(), trig1Array.size(), NULL, 0);
+					if (not success) {
+						printf("could not render geometry! SDL Error: %s\n", SDL_GetError());
+					}
+				}
 			}
 		}
 	}
@@ -100,6 +175,10 @@ Point vecCrossProduct(Point v1, Point v2) {
 	);
 }
 
+double vecAngle(Point v1, Point v2) {
+	return pow(std::cos(vecDotProduct(v1, v2) / (std::abs(v1.length() * v2.length()))), -1);
+}
+
 Point faceNormal(int face[4], std::vector<Point> points) {
 	Point vs1 = vecSubstraction(points[face[1]], points[face[0]]);
 	Point vs2 = vecSubstraction(points[face[2]], points[face[0]]);
@@ -125,24 +204,83 @@ double vecDistance(Point v1, Point v2) {
 	return sqrt(pow(v1.x - v2.x, 2) + pow(v1.y - v2.y, 2) + pow(v1.z - v2.z, 2));
 }
 
-void connect(SDL_Renderer* const renderer, const std::vector<Point>& points, int i, int j, Point playerPos, Point playerRot, double scale, double screenOffsetX, double screenOffsetY) {
+bool isVertexEqual(SDL_Vertex v1, SDL_Vertex v2) {
+	return (v1.position.x == v2.position.x) and (v1.position.y == v2.position.y);
+}
+
+int orientation(Point& p, Point& q, Point& r) {
+	double val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
+	if (val == 0) return 0;              // Collinear
+	return (val > 0) ? 1 : 2;            // Clockwise or Counterclockwise
+}
+
+// Function to check if two segments p1q1 and p2q2 intersect
+bool doIntersect(Point& p1, Point& q1, Point& p2, Point& q2) {
+	// Find the orientations
+	int o1 = orientation(p1, q1, p2);
+	int o2 = orientation(p1, q1, q2);
+	int o3 = orientation(p2, q2, p1);
+	int o4 = orientation(p2, q2, q1);
+
+	// General case
+	if (o1 != o2 && o3 != o4) return true;
+
+	return false; // No intersection
+}
+
+std::pair<std::pair<Point, Point>, std::pair<Point, Point>> findDiagonals(std::vector<Point>& vertices) {
+	if (vertices.size() != 4) {
+		printf("There must be exactly 4 vertices.");
+		throw std::invalid_argument("There must be exactly 4 vertices.");
+	}
+
+	// Check all pairs of lines to find the intersecting ones
+	for (size_t i = 0; i < 4; ++i) {
+		for (size_t j = i + 2; j < 4; ++j) {
+			size_t next_i = (i + 1) % 4; // Next point for edge i
+			size_t next_j = (j + 1) % 4; // Next point for edge j
+
+			if (doIntersect(vertices[i], vertices[next_i], vertices[j], vertices[next_j])) {
+				// The two diagonals are (i, j) and (next_i, next_j)
+				return { {vertices[i], vertices[j]}, {vertices[next_i], vertices[next_j]} };
+			}
+		}
+	}
+
+	printf("Invalid quadrilateral: no intersecting diagonals found.");
+	throw std::logic_error("Invalid quadrilateral: no intersecting diagonals found.");
+}
+
+SDL_Vertex pointToVertex(Point point, double r, double g, double b) {
+	SDL_Vertex vert;
+	vert.position.x = point.x;
+	vert.position.y = point.y;
+	vert.color.r = r;
+	vert.color.g = g;
+	vert.color.b = b;
+	vert.color.a = 1.0;
+	vert.tex_coord = SDL_FPoint{ 0 };
+	return vert;
+}
+
+std::vector<Point> connect(SDL_Renderer* const renderer, const std::vector<Point>& points, int i, int j, Point playerPos, Point playerRot, double scale, double screenOffsetX, double screenOffsetY) {
 	double screenSizeX = screenOffsetX * 2;
 	double screenSizeY = screenOffsetY * 2;
 	
 	Point playerVerticalRot = transform(getRotationMatrix(Point(0, playerRot.y, 0)), Point(playerRot.x, 0, 0));
 	//printf("%f, %f\n", playerVerticalRot.x, playerVerticalRot.z);
 	Matrix playerRotMatrix = getRotationMatrix(Point(-playerVerticalRot.x, -playerRot.y, -playerVerticalRot.z));
-	Point pos = translate(playerPos, points[i]);
-	pos = transform(playerRotMatrix, pos);
+	Point posI = translate(playerPos, points[i]);
+	posI = transform(playerRotMatrix, posI);
 	//printf("dist: %f\n", vecDistance(playerPos, pos));
-	Point iScreenCoords = screenProj(pos, screenOffsetX, screenOffsetY);
+	Point iScreenCoords = screenProj(posI, screenOffsetX, screenOffsetY);
 	bool iInside = true;
 	if (not isOnScreen(iScreenCoords, screenSizeX, screenSizeY)) {
 		iInside = false;
 	}
-	pos = translate(playerPos, points[j]);
-	pos = transform(playerRotMatrix, pos);
-	Point jScreenCoords = screenProj(pos, screenOffsetX, screenOffsetY);
+	Point posJ = translate(playerPos, points[j]);
+	posJ = transform(playerRotMatrix, posJ);
+	Point jScreenCoords = screenProj(posJ, screenOffsetX, screenOffsetY);
 	bool jInside = true;
 	if (not isOnScreen(jScreenCoords, screenSizeX, screenSizeY)) {
 		jInside = false;
@@ -151,13 +289,14 @@ void connect(SDL_Renderer* const renderer, const std::vector<Point>& points, int
 	//printf("(jScreenCoords - iScreenCoords).length(): %f\n", (jScreenCoords - iScreenCoords).length());
 	
 	if (iInside and jInside) {
-		SDL_RenderLine(
+		/*SDL_RenderLine(
 			renderer,
 			iScreenCoords.x,
 			iScreenCoords.y,
 			jScreenCoords.x,
 			jScreenCoords.y
-		);
+		);*/
+		return {iScreenCoords, jScreenCoords};
 	} else if (iInside or jInside) {
 		Point vec1 = iScreenCoords;
 		Point vec2 = jScreenCoords;
@@ -234,15 +373,24 @@ void connect(SDL_Renderer* const renderer, const std::vector<Point>& points, int
 			if (jInside) {
 				vec1 = jScreenCoords;
 			}
-			SDL_RenderLine(
+			/*SDL_RenderLine(
 				renderer,
 				vec1.x,
 				vec1.y,
 				intersectionPoint.x,
 				intersectionPoint.y
-			);
+			);*/
+			if (jInside) {
+				return { intersectionPoint, vec1 };
+			}
+			else {
+				return { vec1, intersectionPoint };
+			}
 		}
 	}
+	/*else {
+		return { posJ };
+	}*/
 }
 
 bool isOnScreen(Point v, double screenSizeX, double screenSizeY) {

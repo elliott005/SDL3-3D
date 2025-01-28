@@ -29,9 +29,9 @@ int main(int argc, char* args[]) {
 	int scale = 20;
 
 	std::vector<Cube> cubes = {
-		Cube(0, 0, -250, 10, 1, 10, scale, 100, 200, 0),
-		Cube(0, 0, 300, 1, 1, 10, scale, 10, 100, 200),
-		Cube(100, 0, 0, 1, 1, 1, scale, 10, 200, 0),
+		Cube(0, 0, -250, 10, 1, 10, scale, 1, 1, 0),
+		Cube(0, 0, 300, 1, 1, 10, scale, 0, 1, 1),
+		Cube(100, 0, 0, 1, 5, 1, scale, 0, 1, 0),
 		Cube(-150, 0, 0, 1, 1, 1, scale, 0, 0, 0)
 	};
 
