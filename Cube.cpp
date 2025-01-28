@@ -1,6 +1,6 @@
 #include "Cube.hpp"
 
-Cube::Cube(double x, double y, double z, double p_width, double p_height, double p_depth, double p_scale, int p_r, int p_g, int p_b) {
+Cube::Cube(double x, double y, double z, double p_width, double p_height, double p_depth, double p_scale, double p_r, double p_g, double p_b) {
 	pos.x = x;
 	pos.y = y;
 	pos.z = z;
@@ -425,6 +425,10 @@ std::tuple<Point, bool> rayPlaneIntersection(Point planeNormal, Point planeCente
 	double prod2 = rayVector.dot(planeNormal);
 	double prod3 = prod1 / prod2;
 	return rayPoint - rayVector * prod3;*/
+}
+
+bool cubeComparator(Cube a, Cube b) {
+	return a.pos.length() > b.pos.length();
 }
 
 int sign(double n) {

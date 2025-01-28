@@ -133,9 +133,11 @@ SDL_Vertex pointToVertex(Point point, double r, double g, double b);
 
 class Cube {
 public:
-    Cube(double x, double y, double z, double p_width, double p_height, double p_depth, double scale, int p_r, int p_g, int p_b);
+    Cube(double x, double y, double z, double p_width, double p_height, double p_depth, double scale, double p_r, double p_g, double p_b);
 
     void draw(SDL_Renderer* renderer, int screenWidth, int screenHeight, Point playerPos, Point playerRot);
+
+    Point pos;
 
 private:
     /*int vertices[8][3] = {
@@ -160,9 +162,10 @@ private:
         {5, 4, 7, 6}
     };
     std::vector<Point> points;
-    Point pos;
 
     double scale;
     double width; double height; double depth;
-    int r; int g; int b;
+    double r; double g; double b;
 };
+
+bool cubeComparator(Cube a, Cube b);
