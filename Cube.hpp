@@ -47,6 +47,9 @@ public:
     Point operator*(double other) {
         return Point(this->x * other, this->y * other, this->z * other);
     }
+    Point operator*(Point other) {
+        return Point(this->x * other.x, this->y * other.y, this->z * other.z);
+    }
     void operator*=(double other) {
         this->x *= other;
         this->y *= other;
@@ -138,6 +141,8 @@ public:
     void draw(SDL_Renderer* renderer, int screenWidth, int screenHeight, Point playerPos, Point playerRot);
 
     Point pos;
+    double width; double height; double depth;
+    double scale;
 
 private:
     /*int vertices[8][3] = {
@@ -161,10 +166,17 @@ private:
         {7, 3, 2, 6},
         {5, 4, 7, 6}
     };
+    double facesDarkness[6] = {
+        0.7,
+        0.7,
+        0.7,
+        0.2,
+        1.0,
+        0.7,
+    };
+
     std::vector<Point> points;
 
-    double scale;
-    double width; double height; double depth;
     double r; double g; double b;
 };
 

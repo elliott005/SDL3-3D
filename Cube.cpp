@@ -60,6 +60,7 @@ void Cube::draw(SDL_Renderer* renderer, int screenWidth, int screenHeight, Point
 			}
 			if (facePointsUnique.size() >= 3) {
 				std::vector<SDL_Vertex> trig1Array;
+				double colorMult = facesDarkness[i];
 				if (facePointsUnique.size() == 4) {
 					std::pair<std::pair<Point, Point>, std::pair<Point, Point>> diags = findDiagonals(facePointsUnique);
 					/*printf("first.first: %f, %f\n", diags.first.first.x, diags.first.first.y);
@@ -75,34 +76,34 @@ void Cube::draw(SDL_Renderer* renderer, int screenWidth, int screenHeight, Point
 					}
 					//printf("second: %f, %f\n", second.x, second.y);
 					trig1Array = {
-						pointToVertex(diags.second.second, r, g, b),
-						pointToVertex(second, r, g, b),
-						pointToVertex(diags.first.second, r, g, b),
-						pointToVertex(second, r, g, b),
-						pointToVertex(diags.second.second, r, g, b),
-						pointToVertex(diags.second.first, r, g, b),
+						pointToVertex(diags.second.second, r * colorMult, g * colorMult, b * colorMult),
+						pointToVertex(second, r * colorMult, g * colorMult, b * colorMult),
+						pointToVertex(diags.first.second, r * colorMult, g * colorMult, b * colorMult),
+						pointToVertex(second, r * colorMult, g * colorMult, b * colorMult),
+						pointToVertex(diags.second.second, r * colorMult, g * colorMult, b * colorMult),
+						pointToVertex(diags.second.first, r * colorMult, g * colorMult, b * colorMult),
 					};
 				}
 				else if (facePointsUnique.size() == 3) {
 					trig1Array = {
-						pointToVertex(facePointsUnique[0], r, g, b),
-						pointToVertex(facePointsUnique[1], r, g, b),
-						pointToVertex(facePointsUnique[2], r, g, b),
+						pointToVertex(facePointsUnique[0], r * colorMult, g * colorMult, b * colorMult),
+						pointToVertex(facePointsUnique[1], r * colorMult, g * colorMult, b * colorMult),
+						pointToVertex(facePointsUnique[2], r * colorMult, g * colorMult, b * colorMult),
 					};
 				}
 				else if (facePointsUnique.size() == 5) {
 					trig1Array = {
-						pointToVertex(facePointsUnique[0], r, g, b),
-						pointToVertex(facePointsUnique[1], r, g, b),
-						pointToVertex(facePointsUnique[2], r, g, b),
+						pointToVertex(facePointsUnique[0], r * colorMult, g * colorMult, b * colorMult),
+						pointToVertex(facePointsUnique[1], r * colorMult, g * colorMult, b * colorMult),
+						pointToVertex(facePointsUnique[2], r * colorMult, g * colorMult, b * colorMult),
 
-						pointToVertex(facePointsUnique[2], r, g, b),
-						pointToVertex(facePointsUnique[0], r, g, b),
-						pointToVertex(facePointsUnique[3], r, g, b),
+						pointToVertex(facePointsUnique[2], r * colorMult, g * colorMult, b * colorMult),
+						pointToVertex(facePointsUnique[0], r * colorMult, g * colorMult, b * colorMult),
+						pointToVertex(facePointsUnique[3], r * colorMult, g * colorMult, b * colorMult),
 
-						pointToVertex(facePointsUnique[0], r, g, b),
-						pointToVertex(facePointsUnique[3], r, g, b),
-						pointToVertex(facePointsUnique[4], r, g, b),
+						pointToVertex(facePointsUnique[0], r * colorMult, g * colorMult, b * colorMult),
+						pointToVertex(facePointsUnique[3], r * colorMult, g * colorMult, b * colorMult),
+						pointToVertex(facePointsUnique[4], r * colorMult, g * colorMult, b * colorMult),
 					};
 				}
 				if (trig1Array.size()) {
@@ -193,6 +194,7 @@ bool isVisible(int face[4], std::vector<Point> points, Point playerPos, Point pl
 }
 
 Point screenProj(Point coords, double screenOffsetX, double screenOffsetY) {
+	// either coords.x / -coords.z or coords.x / coords.z
 	return Point(
 		(coords.x / coords.z * screenOffsetX) + screenOffsetX,
 		(coords.y / coords.z * screenOffsetY) + screenOffsetY,
@@ -255,9 +257,9 @@ SDL_Vertex pointToVertex(Point point, double r, double g, double b) {
 	SDL_Vertex vert;
 	vert.position.x = point.x;
 	vert.position.y = point.y;
-	vert.color.r = r;
-	vert.color.g = g;
-	vert.color.b = b;
+	vert.color.r = std::max(0.0, r);
+	vert.color.g = std::max(0.0, g);
+	vert.color.b = std::max(0.0, b);
 	vert.color.a = 1.0;
 	vert.tex_coord = SDL_FPoint{ 0 };
 	return vert;

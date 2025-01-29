@@ -1,12 +1,10 @@
-﻿  Cube.cpp
-C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\Cube.cpp(29,41): warning C4244: 'argument': conversion from 'double' to 'Uint8', possible loss of data
-C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\Cube.cpp(29,38): warning C4244: 'argument': conversion from 'double' to 'Uint8', possible loss of data
-C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\Cube.cpp(29,35): warning C4244: 'argument': conversion from 'double' to 'Uint8', possible loss of data
-C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\Cube.cpp(109,90): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\Cube.cpp(256,25): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\Cube.cpp(257,25): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\Cube.cpp(258,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\Cube.cpp(259,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\Cube.cpp(260,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\Cube.cpp(394,1): warning C4715: 'connect': not all control paths return a value
+﻿  main.cpp
+C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\Player.hpp(24,27): warning C4305: 'initializing': truncation from 'double' to 'float'
+  (compiling source file 'main.cpp')
+  
+C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\main.cpp(100,50): warning C4244: 'argument': conversion from '_Ty' to 'Uint32', possible loss of data
+C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\main.cpp(100,50): warning C4244:         with
+C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\main.cpp(100,50): warning C4244:         [
+C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\main.cpp(100,50): warning C4244:             _Ty=double
+C:\Users\ellio\Documents\coding\C++\SDL-3D\SDL-3D\main.cpp(100,50): warning C4244:         ]
   SDL-3D.vcxproj -> C:\Users\ellio\Documents\coding\C++\SDL-3D\x64\Debug\SDL-3D.exe
